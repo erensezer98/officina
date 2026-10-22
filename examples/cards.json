@@ -1,0 +1,18 @@
+[
+ {"id": 1, "kind": "welcome", "state": "open", "from": "Coordinator", "at": "",
+  "q": "Welcome to Officina. This is a card: the team never asks you in its own windows. Every question comes here, with options. Tap one.",
+  "context": "Your answer goes straight to the coordinator, who passes it to the right agent. Cards that wait on you are listed under 'For you'.",
+  "options": ["Got it", "Show me more"]},
+ {"id": 2, "kind": "welcome", "state": "open", "from": "Coordinator", "at": "",
+  "q": "Every deliverable moves along a lane: author → Judge (reviewers) → Folder Manager (files it) → you. Open 'Lanes' to see where each one is and who is waiting.",
+  "context": "If you mark up a file (PDF boxes or 3D pins) and press 'send', the lane opens again and the author gets your notes.",
+  "options": ["OK", "Explain markup"]},
+ {"id": 3, "kind": "welcome", "state": "open", "from": "Tech", "at": "",
+  "q": "Each evening the agents give each other feedback (1-10 plus 'what would help you'). It is not a competition: it shows where an agent needs a tool, context or a better brief from you.",
+  "context": "You can vote too, on each agent's profile page. Agents also write Requests: things you could do so they work better. Reply there; the coordinator relays your answer at once.",
+  "options": ["Sounds good", "Not now"]},
+ {"id": 4, "kind": "welcome", "state": "open", "from": "Coordinator", "at": "",
+  "q": "Agents never send anything outside on their own. Mail and chat texts arrive as Drafts: you copy and send them yourself.",
+  "context": "Safety rules: a denied permission = the agent stops and asks; backups before any model edit; one test document in the CAD app for agents.",
+  "options": ["Understood"]}
+]

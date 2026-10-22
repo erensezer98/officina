@@ -1,0 +1,30 @@
+{
+ "_help": "Copy to <office folder>/config.json (install.sh does it). The office folder is ~/.claude/office unless OFFICINA_HOME is set.",
+ "port": 4242,
+ "human_name": "You",
+ "team": [
+  {"name": "Coordinator", "color": "#c23b2e", "role": "Coordinator · routes work, turns questions into cards"},
+  {"name": "Modeller", "color": "#e3b13b", "role": "Modeller · 3D models and drawings", "work": ["Modeller work"]},
+  {"name": "Judge", "color": "#a9a59d", "role": "Judge · reviews every deliverable with reviewer personas"},
+  {"name": "Folder Manager", "color": "#3f6fb0", "role": "Folder Manager · file standard, filing, staging"},
+  {"name": "Procurer", "color": "#e07f3a", "role": "Procurer · suppliers, quotes, timeline", "work": ["Procurement"]},
+  {"name": "Tech", "color": "#8a7fa3", "role": "Tech · workflow review, tools, scores", "work": ["Tech"]}
+ ],
+ "reviewer": "Judge",
+ "filer": "Folder Manager",
+ "file_roots": ["~/Documents", "~/Desktop", "~/Downloads"],
+ "work_dir": "~/Documents",
+ "notes_dir": "",
+ "timeline_file": "",
+ "tailnet_ip": "",
+ "terminal_port": 7681,
+ "agents_terminal_port": 7682,
+ "push_script": "",
+ "location_script": "",
+ "timezone": "",
+ "routines": [
+  {"agent": "tech", "routine": "vote-request", "weekdays": [1, 2, 3, 4, 5], "hour": 18, "minute": 30},
+  {"agent": "tech", "routine": "workflow-review", "weekdays": [1, 2, 3, 4, 5], "hour": 18, "minute": 45},
+  {"agent": "tech", "routine": "tool-scout", "weekdays": [1, 4], "hour": 9, "minute": 15}
+ ]
+}

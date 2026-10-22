@@ -1,0 +1,6 @@
+[
+ {"name": "Daily feedback round", "when": "weekdays 18:30", "owner": "Tech", "what": "Every agent rates the others 1-10 and writes what would help them (votes/<day>/<name>.json)", "active": true},
+ {"name": "Workflow review + scores", "when": "weekdays 18:45", "owner": "Tech", "what": "Friction, needs → top 3 proposals; scores.json for the profiles", "active": true},
+ {"name": "Tool scout", "when": "Mon + Thu 09:15", "owner": "Tech", "what": "Max 5 real wins + 2-3 build ideas", "active": true},
+ {"name": "Weekly pain card", "when": "Wed 17:30", "owner": "Tech", "what": "Asks you for 1-2 tasks that felt slow this week", "active": true}
+]

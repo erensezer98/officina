@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Officina compare</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--sans:'Geist',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace;--paper:#fff;--ink:#1d1d1b;--ink2:#3d3c38;--mute:#76746e;--faint:#a7a49d;--line:#e4e2dd;--copper:#c23b2e;--copper2:#a12e23;--old:#c23b2e;--new:#2c5a98;--hl:#e3a21a}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#f6f6f5;color:var(--ink);font:12.5px var(--sans);overflow:hidden}
+.bar{position:absolute;left:0;right:0;top:0;height:40px;display:flex;align-items:center;gap:6px;padding:0 10px;background:var(--paper);border-bottom:1px solid var(--line);z-index:3;overflow:hidden}
+button,select{font:500 12px var(--sans);background:#fff;color:var(--ink);border:1px solid var(--line);padding:5px 9px;border-radius:0;cursor:pointer;white-space:nowrap;flex:0 0 auto}
+button:hover{border-color:var(--copper);color:var(--copper2)} button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+select{max-width:210px;padding:5px 6px;text-overflow:ellipsis}
+.seg{display:flex}.seg button+button{margin-left:-1px}
+.z{min-width:46px;text-align:center;color:var(--ink2);font:500 12px var(--mono)} .sp{flex:1;min-width:4px}
+.lg{display:flex;align-items:center;gap:5px;color:var(--mute);font:11.5px var(--sans);white-space:nowrap}.lg i{width:10px;height:10px;display:inline-block}
+.fade{display:flex;align-items:center;gap:6px;color:var(--mute);font:11.5px var(--sans)} .fade input{width:110px;accent-color:var(--ink)}
+.tl2{display:none}@media(max-width:760px){.tl2{display:inline}}
+.tg{display:flex;align-items:center;gap:5px;color:var(--ink2);font:12px var(--sans);cursor:pointer;white-space:nowrap} .tg input{accent-color:var(--hl)}
+#rail{position:absolute;top:40px;left:0;bottom:0;width:150px;background:var(--paper);border-right:1px solid var(--line);overflow:auto;z-index:2}
+#rail h3{margin:0;padding:10px 12px 6px;font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.pg{display:flex;align-items:center;gap:7px;padding:6px 12px;cursor:pointer;border-left:3px solid transparent;font:12.5px var(--sans)}
+.pg:hover{background:#f6f6f5} .pg.on{background:#f1efea;border-left-color:var(--ink)}
+.pg b{font:600 12px var(--mono);min-width:28px} .pg span{color:var(--faint);font-size:11.5px;margin-left:auto;white-space:nowrap}
+.pg.ch span{color:var(--copper2);font-weight:500} .pg.add span{color:var(--new)} .pg.rem span{color:var(--old)}
+.sum{padding:8px 12px 12px;color:var(--mute);font:11.5px/1.45 var(--sans);border-bottom:1px solid var(--line)}
+#stage{position:absolute;top:40px;left:150px;right:0;bottom:0;display:flex}
+.pane{flex:1;position:relative;overflow:auto;min-width:0;cursor:grab;background:#f6f6f5} .pane.drag{cursor:grabbing}
+.pane+.pane{border-left:1px solid var(--line)}
+.cap{position:sticky;top:0;left:0;z-index:2;display:flex;gap:6px;align-items:center;padding:6px 10px;font:500 11.5px var(--sans);color:var(--ink2);background:rgba(246,246,245,.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cap i{width:9px;height:9px;flex:0 0 9px}
+.sheet{position:relative;margin:4px 20px 30px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08),0 8px 30px rgba(0,0,0,.10)}
+.sheet img,.sheet canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
+.sheet .none{position:absolute;inset:0;display:grid;place-items:center;color:var(--faint);font:13px var(--sans);background:repeating-linear-gradient(45deg,#fafaf8,#fafaf8 8px,#f2f1ee 8px,#f2f1ee 16px)}
+.rg{position:absolute;border:2px solid var(--hl);background:rgba(227,162,26,.10);pointer-events:none}
+.rg b{position:absolute;left:-2px;top:-17px;background:var(--hl);color:#1d1d1b;font:600 10.5px var(--mono);padding:0 5px}
+body.nohl .rg{display:none}
+.msg{position:absolute;inset:0;display:grid;place-items:center;color:var(--mute);font:13px var(--sans);pointer-events:none}
+.busy{position:absolute;right:12px;bottom:10px;font:11.5px var(--sans);color:var(--faint);z-index:3}
+body:not(.ov) .ovonly{display:none} body.ov .sbsonly{display:none}
+@media(max-width:900px){#rail{display:none}#stage{left:0}.lg,.fade span{display:none}}
+@media(max-width:760px){.bar{gap:4px;padding:0 6px}.tl,.fitb{display:none}#base{max-width:96px}.fade input{width:70px}button,select{padding:5px 7px}.z{min-width:38px}}
+@media(max-width:600px){.bar{height:46px;overflow-x:auto}#rail,#stage{top:46px}.bar button,.bar select{height:34px}#stage{flex-direction:column}.pane+.pane{border-left:0;border-top:1px solid var(--line)}}
+</style>
+</head>
+<body class="">
+<div class="bar">
+  <div class="seg"><button id="m-sbs" title="side by side (1)">side<span class="tl"> by side</span></button><button id="m-ov" title="overlay (2)">overlay</button></div>
+  <label class="tg" title="outline the changed areas (H)"><input type="checkbox" id="hl" checked><span class="tl">changes</span><span class="tl2">Δ</span></label>
+  <span class="fade ovonly" title="fade between old and new"><span>old</span><input type="range" id="fade" min="0" max="100" value="50"><span>new</span></span>
+  <span class="lg ovonly"><i style="background:var(--old)"></i>old only <i style="background:var(--new);margin-left:6px"></i>new only</span>
+  <span class="sp"></span>
+  <button id="prev" title="previous page (←)">‹</button><span class="z" id="pgn">–</span><button id="next" title="next page (→)">›</button>
+  <button id="nch" title="next changed page (N)">next<span class="tl"> change</span></button>
+  <button id="out" title="zoom out (⌘−)">−</button><span class="z" id="z">100%</span><button id="in" title="zoom in (⌘+)">+</button><button id="fit" class="fitb" title="fit (⌘0)">fit</button>
+  <select id="base" title="compare against"></select>
+</div>
+<aside id="rail"><h3>pages</h3><div class="sum" id="sum">scanning pages…</div><div id="pages"></div></aside>
+<div id="stage"></div>
+<div class="busy" id="busy"></div>
+<script>
+// Compare two PDFs with the pages the Officina server renders (poppler). Own canvas diff, no libraries.
+const Q=new URLSearchParams(location.search), A=Q.get("a"), B=Q.get("b"), $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const base=p=>(p||"").split("/").pop().replace(/\.pdf$/i,""), revOf=p=>((base(p).match(/REV\s*\d+/i)||[""])[0]).toUpperCase().replace(/\s/g,"");
+const url=(p,n,dpi)=>`/api/pdfpage?p=${encodeURIComponent(p)}&n=${n}&dpi=${dpi}`;
+let SA=[],SB=[],N=0,page=1,mode=localStorage.getItem("officina.cmpMode")||"sbs",scale=1,fitMode=true,SCAN=[],timer,fade=.5;
+const img=src=>new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=src});
+const sz=n=>{const a=SA[n-1],b=SB[n-1];return {w:Math.max(a?a.w:0,b?b.w:0),h:Math.max(a?a.h:0,b?b.h:0)}};
+// ---- diff: identical renders give identical pixels, so a plain channel difference is enough; regions = clustered 8 px cells ----
+function pixels(im,W,H){const c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d",{willReadFrequently:true});g.fillStyle="#fff";g.fillRect(0,0,W,H);if(im)g.drawImage(im,0,0);return g.getImageData(0,0,W,H).data}
+function diff(ia,ib){const W=Math.max(ia?ia.width:0,ib?ib.width:0),H=Math.max(ia?ia.height:0,ib?ib.height:0),a=pixels(ia,W,H),b=pixels(ib,W,H);
+  const cs=8,cw=Math.ceil(W/cs),ch=Math.ceil(H/cs),cell=new Uint16Array(cw*ch);let n=0;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const k=(y*W+x)*4;if(Math.abs(a[k]-b[k])>40||Math.abs(a[k+1]-b[k+1])>40||Math.abs(a[k+2]-b[k+2])>40){n++;cell[((y/cs)|0)*cw+((x/cs)|0)]++}}
+  const on=new Uint8Array(cw*ch);for(let i=0;i<on.length;i++)on[i]=cell[i]>=2?1:0;
+  const seen=new Int32Array(cw*ch).fill(-1),boxes=[],R=2;                                     // merge cells closer than 2 cells
+  for(let i=0;i<on.length;i++){if(!on[i]||seen[i]>=0)continue;const st=[i];seen[i]=boxes.length;let x0=1e9,y0=1e9,x1=-1,y1=-1,px=0;
+    while(st.length){const j=st.pop(),cx=j%cw,cy=(j/cw)|0;x0=Math.min(x0,cx);y0=Math.min(y0,cy);x1=Math.max(x1,cx);y1=Math.max(y1,cy);px+=cell[j];
+      for(let dy=-R;dy<=R;dy++)for(let dx=-R;dx<=R;dx++){const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=cw||ny>=ch)continue;const q=ny*cw+nx;if(on[q]&&seen[q]<0){seen[q]=boxes.length;st.push(q)}}}
+    boxes.push({x:x0*cs/W,y:y0*cs/H,w:(x1-x0+1)*cs/W,h:(y1-y0+1)*cs/H,px})}
+  boxes.sort((p,q)=>p.y-q.y||p.x-q.x);
+  return {n,boxes,W,H,a,b}}
+// ---- scan every page at low dpi for the page list ----
+async function scan(){const dpi=54;let changed=0,regions=0;
+  for(let n=1;n<=N;n++){const hasA=n<=SA.length,hasB=n<=SB.length;
+    if(!hasA||!hasB){SCAN[n]={kind:hasB?"add":"rem"};changed++;rail();continue}
+    try{const [ia,ib]=await Promise.all([img(url(A,n,dpi)),img(url(B,n,dpi))]);const d=diff(ia,ib);SCAN[n]={kind:d.boxes.length?"ch":"same",boxes:d.boxes};
+      if(d.boxes.length){changed++;regions+=d.boxes.length}}catch(e){SCAN[n]={kind:"err"}}
+    rail(); if(n===page)drawBoxes()}
+  $("#sum").innerHTML=changed?`<b style="color:var(--ink)">${changed} of ${N} page${N>1?"s":""} changed</b> · ${regions} area${regions===1?"":"s"}`+(SA.length!==SB.length?`<br>${SA.length} → ${SB.length} pages`:""):`<b style="color:var(--ink)">No visible change</b> in ${N} page${N>1?"s":""}`;
+  if(SCAN[page]&&SCAN[page].kind==="same"){const f=SCAN.findIndex((s,i)=>i>0&&s&&s.kind!=="same");if(f>0&&!userMoved)go(f)}}
+let userMoved=false;
+function rail(){$("#pages").innerHTML=Array.from({length:N},(_,i)=>{const n=i+1,s=SCAN[n],k=s?s.kind:"",t=!s?"…":k==="ch"?`${s.boxes.length} change${s.boxes.length>1?"s":""}`:k==="add"?"new page":k==="rem"?"removed":k==="err"?"error":"same";
+  return `<div class="pg ${k} ${n===page?"on":""}" data-n="${n}"><b>p${n}</b><span>${t}</span></div>`}).join("")}
+$("#pages").onclick=e=>{const r=e.target.closest("[data-n]");if(r){userMoved=true;go(+r.dataset.n)}};
+// ---- view ----
+function panes(){const st=$("#stage");document.body.classList.toggle("ov",mode==="ov");$("#m-sbs").classList.toggle("on",mode==="sbs");$("#m-ov").classList.toggle("on",mode==="ov");
+  const ra=revOf(A)||"old",rb=revOf(B)||"new";
+  st.innerHTML=mode==="sbs"?`<div class="pane" id="pa"><div class="cap"><i style="background:var(--old)"></i>${esc(ra)} · old · ${esc(base(A))}</div><div class="sheet"></div></div><div class="pane" id="pb"><div class="cap"><i style="background:var(--new)"></i>${esc(rb)} · new · ${esc(base(B))}</div><div class="sheet"></div></div>`
+    :`<div class="pane" id="po"><div class="cap"><i style="background:var(--old)"></i>${esc(ra)} <span style="color:var(--faint)">vs</span> <i style="background:var(--new)"></i>${esc(rb)} · overlay</div><div class="sheet"><canvas></canvas></div></div>`;
+  [...st.querySelectorAll(".pane")].forEach(bindPane);layout();render()}
+function fitScale(){const p=$("#stage .pane");if(!p)return 1;const s=sz(page);return Math.max(.05,Math.min((p.clientWidth-40)/s.w,(p.clientHeight-60)/s.h))}
+function layout(keep){const s=sz(page);if(fitMode)scale=fitScale();$("#z").textContent=Math.round(scale*100)+"%";
+  document.querySelectorAll(".sheet").forEach(el=>{el.style.width=s.w*scale+"px";el.style.height=s.h*scale+"px"});
+  if(keep){const p=keep.pane;document.querySelectorAll(".pane").forEach(q=>{q.scrollLeft=keep.fx*q.scrollWidth-keep.x;q.scrollTop=keep.fy*q.scrollHeight-keep.y})}
+  drawBoxes();clearTimeout(timer);timer=setTimeout(render,180)}
+const dpiNow=()=>{const s=sz(page);let d=Math.ceil(72*scale*(devicePixelRatio||1)/12)*12;d=Math.min(mode==="ov"?220:400,Math.max(48,d));
+  const px=(s.w*d/72)*(s.h*d/72);if(px>2.4e7)d=Math.floor(72*Math.sqrt(2.4e7/(s.w*s.h))/12)*12;return d};
+let renderId=0,cache={};
+async function render(){const id=++renderId,dpi=dpiNow(),n=page,hasA=n<=SA.length,hasB=n<=SB.length;$("#pgn").textContent=`${n} / ${N}`;
+  if(mode==="sbs"){[["#pa",A,hasA],["#pb",B,hasB]].forEach(([sel,p,has])=>{const sh=document.querySelector(sel+" .sheet");if(!sh)return;
+      if(!has){sh.querySelector("img")?.remove();if(!sh.querySelector(".none"))sh.insertAdjacentHTML("afterbegin",`<div class="none">no page ${n} in this revision</div>`);return}
+      sh.querySelector(".none")?.remove();let im=sh.querySelector("img");if(!im){im=document.createElement("img");im.alt="";sh.prepend(im)}
+      if(im.dataset.k===`${n}-${dpi}`||(+im.dataset.dpi>=dpi&&im.dataset.n==n))return;const nx=new Image();nx.onload=()=>{if(id===renderId||im.dataset.n!=n){im.src=nx.src;im.dataset.k=`${n}-${dpi}`;im.dataset.dpi=dpi;im.dataset.n=n}};nx.src=url(p,n,dpi)});
+    return}
+  const cv=document.querySelector("#po canvas");if(!cv)return;const key=`${n}-${dpi}`;
+  if(cv.dataset.k===key&&cache.d){paintOverlay(cv,cache.d);return}
+  $("#busy").textContent="comparing…";
+  try{const [ia,ib]=await Promise.all([hasA?img(url(A,n,dpi)):null,hasB?img(url(B,n,dpi)):null]);if(id!==renderId)return;
+    const d=diff(ia,ib);cache={d};cv.dataset.k=key;paintOverlay(cv,d);
+    if(SCAN[n]&&SCAN[n].kind!=="add"&&SCAN[n].kind!=="rem"){SCAN[n]={kind:d.boxes.length?"ch":"same",boxes:d.boxes};rail();drawBoxes()}}
+  catch(e){}finally{if(id===renderId)$("#busy").textContent=""}}
+// overlay: ink in both = dark grey, only old = red, only new = blue; the slider fades old ↔ new
+function paintOverlay(cv,d){const {W,H,a,b}=d;cv.width=W;cv.height=H;const g=cv.getContext("2d"),out=g.createImageData(W,H),o=out.data;
+  const wo=Math.min(1,2*(1-fade)),wn=Math.min(1,2*fade),OLD=[194,59,46],NEW=[44,90,152],INK=[40,39,36];
+  for(let k=0;k<o.length;k+=4){const da=1-(a[k]*.3+a[k+1]*.59+a[k+2]*.11)/255,db=1-(b[k]*.3+b[k+1]*.59+b[k+2]*.11)/255,c=Math.min(da,db),ro=(da-c)*wo,rn=(db-c)*wn,ci=c*(wo+wn>=1?1:Math.max(wo,wn));
+    for(let j=0;j<3;j++)o[k+j]=255-ci*(255-INK[j])-ro*(255-OLD[j])-rn*(255-NEW[j]);o[k+3]=255}
+  g.putImageData(out,0,0)}
+function drawBoxes(){document.querySelectorAll(".rg").forEach(x=>x.remove());const s=SCAN[page];if(!s||!s.boxes)return;const pad=.006;
+  document.querySelectorAll(".sheet").forEach(sh=>s.boxes.forEach((b,i)=>{const r=document.createElement("div");r.className="rg";
+    Object.assign(r.style,{left:Math.max(0,b.x-pad)*100+"%",top:Math.max(0,b.y-pad)*100+"%",width:(b.w+2*pad)*100+"%",height:(b.h+2*pad)*100+"%"});r.innerHTML=`<b>${i+1}</b>`;sh.appendChild(r)}))}
+function go(n){n=Math.max(1,Math.min(N,n));if(n===page)return;page=n;cache={};rail();layout();render();document.querySelectorAll(".pane").forEach(p=>{p.scrollTop=0})}
+// ---- pan / zoom, both panes in sync ----
+let syncing=false;
+function bindPane(p){p.addEventListener("scroll",()=>{if(syncing)return;syncing=true;document.querySelectorAll(".pane").forEach(q=>{if(q!==p){q.scrollLeft=p.scrollLeft;q.scrollTop=p.scrollTop}});requestAnimationFrame(()=>syncing=false)});
+  let dr=null;p.addEventListener("pointerdown",e=>{if(e.button!==0||e.pointerType!=="mouse")return;dr={x:e.clientX,y:e.clientY,l:p.scrollLeft,t:p.scrollTop};p.classList.add("drag")});
+  addEventListener("pointermove",e=>{if(dr){p.scrollLeft=dr.l-(e.clientX-dr.x);p.scrollTop=dr.t-(e.clientY-dr.y)}});
+  addEventListener("pointerup",()=>{dr=null;p.classList.remove("drag")});
+  p.addEventListener("wheel",e=>{if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();const r=p.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.01),p,e.clientX-r.left,e.clientY-r.top)},{passive:false})}
+function zoom(f,p,x,y){p=p||$("#stage .pane");if(!p)return;x=x??p.clientWidth/2;y=y??p.clientHeight/2;
+  const keep={pane:p,x,y,fx:(p.scrollLeft+x)/p.scrollWidth,fy:(p.scrollTop+y)/p.scrollHeight};fitMode=false;scale=Math.min(8,Math.max(.05,scale*f));layout(keep)}
+let gs=1;addEventListener("gesturestart",e=>{e.preventDefault();gs=1});addEventListener("gesturechange",e=>{e.preventDefault();zoom(e.scale/gs);gs=e.scale});
+$("#in").onclick=()=>zoom(1.25);$("#out").onclick=()=>zoom(.8);$("#fit").onclick=()=>{fitMode=true;layout()};
+$("#prev").onclick=()=>{userMoved=true;go(page-1)};$("#next").onclick=()=>{userMoved=true;go(page+1)};
+function nextChange(){userMoved=true;for(let k=1;k<=N;k++){const n=(page-1+k)%N+1;if(SCAN[n]&&SCAN[n].kind!=="same"){go(n);return}}}
+$("#nch").onclick=nextChange;
+$("#m-sbs").onclick=()=>setMode("sbs");$("#m-ov").onclick=()=>setMode("ov");
+function setMode(m){mode=m;localStorage.setItem("officina.cmpMode",m);cache={};panes()}
+$("#hl").onchange=e=>document.body.classList.toggle("nohl",!e.target.checked);
+$("#fade").oninput=e=>{fade=e.target.value/100;const cv=document.querySelector("#po canvas");if(cv&&cache.d)paintOverlay(cv,cache.d)};
+addEventListener("keydown",e=>{if(/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)&&e.target.type!=="range"&&e.target.type!=="checkbox")return;
+  if(e.metaKey||e.ctrlKey){if(e.key==="="||e.key==="+"){e.preventDefault();zoom(1.25)}else if(e.key==="-"){e.preventDefault();zoom(.8)}else if(e.key==="0"){e.preventDefault();fitMode=true;layout()}return}
+  if(e.key==="ArrowRight"||e.key==="j"){e.preventDefault();userMoved=true;go(page+1)}else if(e.key==="ArrowLeft"||e.key==="k"){e.preventDefault();userMoved=true;go(page-1)}
+  else if(e.key==="n"||e.key==="N")nextChange();else if(e.key==="1")setMode("sbs");else if(e.key==="2")setMode("ov");
+  else if(e.key==="h"||e.key==="H"){const c=$("#hl");c.checked=!c.checked;c.onchange({target:c})}});
+addEventListener("resize",()=>{if(fitMode)layout()});
+// base picker: other revisions of the new file first, then the PDFs in the Library
+async function picker(){let revs=[],arts=[];try{revs=await (await fetch("/api/pdfrevs?p="+encodeURIComponent(B))).json()}catch(e){}
+  try{arts=(await (await fetch("/api/artifacts")).json()).filter(a=>a.path&&/\.pdf$/i.test(a.path)&&a.path!==B)}catch(e){}
+  const seen=new Set([B]),opt=[];const add=(p,t)=>{if(seen.has(p))return;seen.add(p);opt.push(`<option value="${esc(p)}" ${p===A?"selected":""}>${esc(t)}</option>`)};
+  if(A&&!revs.some(r=>r.path===A))add(A,"vs "+base(A));revs.forEach(r=>add(r.path,`vs ${r.rev?"REV"+String(r.rev).padStart(2,"0"):""} · ${r.name.replace(/\.pdf$/i,"")}`));
+  const lib=arts.map(a=>[a.path,a.title]);if(lib.length)opt.push('<option disabled>── other PDFs ──</option>');lib.forEach(([p,t])=>add(p,t));
+  $("#base").innerHTML=opt.join("");$("#base").onchange=e=>{const q=new URLSearchParams(location.search);q.set("a",e.target.value);location.search=q.toString()}}
+(async()=>{if(!A||!B){$("#stage").innerHTML='<div class="msg">pick two PDFs to compare</div>';return}
+  try{[SA,SB]=await Promise.all([fetch("/api/pdfinfo?p="+encodeURIComponent(A)).then(r=>r.json()),fetch("/api/pdfinfo?p="+encodeURIComponent(B)).then(r=>r.json())])}catch(e){}
+  if(!SA.length&&!SB.length){$("#stage").innerHTML='<div class="msg">could not open these pdfs</div>';return}
+  N=Math.max(SA.length,SB.length);rail();panes();picker();scan()})();
+</script>
+</body>
+</html>

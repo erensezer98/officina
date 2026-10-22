@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Officina viewer</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--sans:'Geist',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace;--bg:#ffffff;--paper:#ffffff;--ink:#1d1d1b;--mute:#76746e;--faint:#a7a49d;--line:#e4e2dd;--copper:#c23b2e;--copper2:#a12e23;--slate:#2c5a98}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font:13px/1.45 var(--sans);overflow:hidden}
+#c{position:absolute;inset:0}
+.bar{position:absolute;left:12px;top:12px;display:flex;gap:6px;flex-wrap:wrap;z-index:2}
+button{font:500 12px var(--sans);background:rgba(255,255,255,.94);color:var(--ink);border:1px solid var(--line);padding:6px 10px;border-radius:0;cursor:pointer}
+button:hover,button.on{border-color:var(--copper);color:var(--copper2)}
+.panel{position:absolute;right:12px;top:12px;width:250px;max-height:calc(100% - 24px);overflow:auto;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:0;box-shadow:0 1px 3px rgba(27,26,24,.06);padding:10px 12px;z-index:2}
+h3{margin:2px 0 7px;font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}h3::before{content:none}
+.cl{display:flex;align-items:center;gap:7px;font:12.5px var(--sans);padding:2px 0;cursor:pointer}.cl span{margin-left:auto;color:var(--faint)}
+.cl i{width:10px;height:10px;border-radius:0;flex:0 0 10px}
+.pick{font-size:12.5px}.pick b{font:600 13px var(--sans)}.pick .k{color:var(--mute);font:11.5px var(--sans)}
+.sec{display:flex;align-items:center;gap:8px;font:11.5px var(--sans);color:var(--mute);margin-top:4px}.sec input{flex:1;accent-color:var(--copper)}
+.msg{position:absolute;inset:0;display:grid;place-items:center;font:13.5px var(--sans);color:var(--mute);z-index:1;pointer-events:none}
+.hint{position:absolute;left:12px;bottom:10px;font:11.5px var(--sans);color:var(--faint);z-index:2}
+input[type=checkbox]{accent-color:var(--copper)}
+.cl{min-width:0}.cl .ln{margin-left:0;color:inherit;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cl .ln+span{flex:0 0 auto}
+.pick .ut{margin-top:4px;font:11.5px var(--sans);color:var(--ink)} .pick .ut div{display:flex;gap:6px} .pick .ut .k{min-width:62px}
+body.cm #c{cursor:crosshair}
+#pins{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.pin{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;background:#c23b2e;color:#fff;font:600 11px var(--mono);padding:1px 6px;min-width:18px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.pin::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-4px;border:4px solid transparent;border-top-color:#c23b2e;border-bottom:0}
+.pin.sent{background:#4b7f52}.pin.sent::after{border-top-color:#4b7f52} .pin.new{background:#1d1d1b}.pin.new::after{border-top-color:#1d1d1b} .pin.hot{outline:3px solid rgba(194,59,46,.3)}
+.cbox{position:absolute;z-index:4;width:280px;background:#fff;border:1px solid var(--line);box-shadow:0 6px 20px rgba(0,0,0,.18);padding:8px}
+.cbox .el{font:500 12px var(--sans);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .cbox .el span{color:var(--mute);font-weight:400}
+.cbox textarea{width:100%;min-height:64px;resize:vertical;border:1px solid var(--line);padding:7px 8px;font:13px/1.4 var(--sans);outline:none} .cbox textarea:focus{border-color:var(--copper)}
+.cbox .r{display:flex;gap:6px;justify-content:flex-end;margin-top:6px} .cbox .h{font:11.5px var(--sans);color:var(--faint);margin-right:auto;align-self:center}
+button.go{background:var(--copper);border-color:var(--copper);color:#fff} button.go:hover{color:#fff;background:var(--copper2)} button.go:disabled{opacity:.45;cursor:default}
+#cmb.on{background:var(--copper);border-color:var(--copper);color:#fff}
+.cc{border:1px solid var(--line);border-left:3px solid #c23b2e;background:#fff;padding:6px 8px;margin-bottom:6px;cursor:pointer;font:12.5px/1.4 var(--sans)}
+.cc.sent{border-left-color:#4b7f52;opacity:.75} .cc .m{font:11px var(--sans);color:var(--faint);display:flex;gap:6px;margin-bottom:2px;min-width:0}
+.cc .m b{color:#c23b2e}.cc.sent .m b{color:#4b7f52} .cc .m .en{overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .cc .m .x{margin-left:auto;cursor:pointer;padding:0 3px} .cc .m .x:hover{color:#c23b2e}
+.cfoot{display:flex;flex-direction:column;gap:5px;margin-top:4px} .cfoot input{font:12px var(--sans);border:1px solid var(--line);padding:5px 7px;outline:none;min-width:0}
+.cempty{color:var(--faint);font:12px var(--sans);padding:2px 0 4px}
+.toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 13px;font:12.5px var(--sans);opacity:0;transition:.25s;z-index:9;pointer-events:none}.toast.show{opacity:1}
+#info{display:none} #c{touch-action:none}
+@media(max-width:600px){
+ .cbox{position:fixed;left:8px!important;right:8px;top:auto!important;bottom:calc(8px + env(safe-area-inset-bottom));width:auto} .cbox textarea{font-size:16px}
+ .bar{left:8px;right:8px;top:8px;gap:4px} .bar button{padding:8px 8px;font-size:13px}
+ #info{display:inline-block} .bar [data-v=iso]{display:none}
+ .panel{top:auto;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));width:auto;max-height:45%;display:none}
+ body.pan .panel{display:block} body.pan .hint{display:none}
+ .cl{padding:7px 0;font-size:14px} .cl input{width:18px;height:18px} .sec input{height:28px}
+ .hint{left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));text-align:center}
+}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="c"></div><div class="msg" id="msg">loading model…</div>
+<div class="bar"><button id="fit">fit</button><button data-v="iso">iso</button><button data-v="top">top</button><button data-v="front">front</button><button data-v="side">side</button><button id="xray">x-ray</button><button id="edges" class="on">edges</button><button id="cmb" title="comment on an element (C)">✎ comment</button><button id="info">info</button></div>
+<div id="pins"></div><div class="toast" id="toast"></div>
+<div class="panel"><h3>selected</h3><div class="pick" id="pick"><span class="k">click an element</span></div>
+  <h3 style="margin-top:12px">section</h3><div class="sec">off<input type="range" id="sec" min="0" max="1000" value="1000">top</div>
+  <h3 style="margin-top:12px">comments<span id="ccn"></span></h3><div id="clist"></div>
+  <div class="cfoot" id="cfoot"><input id="cnote" placeholder="note for {{COORD}} (optional)"><button class="go" id="csend">send to {{COORD}}</button></div>
+  <h3 style="margin-top:12px" id="clsh">classes</h3><div id="classes"></div></div>
+<div class="hint" id="hint">drag = orbit · right-drag = pan · scroll = zoom · double-click = zoom to element</div>
+<script>if(matchMedia("(pointer:coarse)").matches)document.getElementById("hint").textContent="1 finger = orbit · 2 fingers = zoom + pan · tap = select · double-tap = zoom to element"</script>
+<script type="module">
+import * as THREE from "three";
+import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
+const q=new URLSearchParams(location.search), src=q.get("glb"), step=q.get("step"), FILE=q.get("path")||"";
+const J=k=>{try{return JSON.parse(q.get(k)||"null")}catch(e){return null}}, FOCUS=J("focus"), CAM=J("cam");   // "look here" views opened by {{COORD}}
+const $=s=>document.querySelector(s), esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),2400)};
+const el=document.getElementById("c"), R=new THREE.WebGLRenderer({antialias:true});
+R.setPixelRatio(devicePixelRatio); R.setClearColor(0xffffff); R.localClippingEnabled=true; el.appendChild(R.domElement);
+const S=new THREE.Scene(), C=new THREE.PerspectiveCamera(40,1,0.01,5000), O=new OrbitControls(C,R.domElement); O.enableDamping=true;
+S.add(new THREE.HemisphereLight(0xfffaf0,0xb8ad9c,1.6)); const sun=new THREE.DirectionalLight(0xffffff,1.6); sun.position.set(30,60,40); S.add(sun);
+const clip=new THREE.Plane(new THREE.Vector3(0,-1,0),1e6);
+let root,box=new THREE.Box3(),sel=null,xray=false,edgesOn=true; const classes={}, orig=new Map();
+function size(){const w=el.clientWidth,h=el.clientHeight;R.setSize(w,h);C.aspect=w/h;C.updateProjectionMatrix()}
+addEventListener("resize",size); size();
+function look(dir){const c=box.getCenter(new THREE.Vector3()),r=box.getSize(new THREE.Vector3()).length()*0.75||10;
+  const d={iso:[1,0.8,1],top:[0,1,0.0001],front:[0,0,1],side:[1,0,0]}[dir]||[1,0.8,1];
+  C.position.copy(c).add(new THREE.Vector3(...d).normalize().multiplyScalar(r*1.9*Math.max(1,0.85/C.aspect))); /* portrait phone: step back so the model fits */ O.target.copy(c); C.near=r/1000; C.far=r*50; C.updateProjectionMatrix()}
+let META={};
+function ready(r,meta){root=r; META=meta||{}; setTimeout(()=>edgesOn&&buildEdges(),0); S.add(root); box.setFromObject(root);
+  root.traverse(o=>{if(!o.isMesh)return; const n=o.parent&&o.parent.userData.cls?o.parent:o; const cls=n.userData.cls||"element";
+    o.material=o.material.clone(); o.material.clippingPlanes=[clip]; o.material.side=THREE.DoubleSide; orig.set(o,o.material.color.clone()); o.userData.el=n;
+    (classes[cls]=classes[cls]||{n:new Set(),meshes:[],col:"#"+o.material.color.getHexString()}).meshes.push(o); classes[cls].n.add(n)});
+  const lab=k=>{const p=k.split("::");return p.length>2?p.slice(-2).join(" › "):p.join(" › ")};   // rhino layer paths: last two levels
+  const ents=Object.entries(classes), is3dm=META.from==="3dm";
+  if(is3dm)$("#clsh").textContent="layers"; else if(ents.every(e=>/^\d/.test(e[0])))ents.sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true})); else ents.sort((a,b)=>b[1].n.size-a[1].n.size);   // numbered legends (checker overlays) read 1..n
+  document.getElementById("classes").innerHTML=ents.map(([k,v])=>{const off=[...v.n].every(n=>n.userData.hidden);return `<label class="cl" title="${esc(k)}"><input type="checkbox" ${off?"":"checked"} data-c="${esc(k)}"><i style="background:${v.col}"></i><span class="ln">${esc(lab(k.replace(/^Ifc/,"")))}</span><span>${v.n.size}</span></label>`}).join("");
+  document.querySelectorAll("[data-c]").forEach(cb=>{const f=()=>classes[cb.dataset.c].meshes.forEach(m=>m.visible=cb.checked);cb.onchange=f;f()});
+  document.getElementById("msg").style.display="none"; look("iso"); cload().then(()=>{if(FOCUS||CAM)focusOn(FOCUS,CAM)})}
+const fail=()=>{document.getElementById("msg").textContent="could not load the model"};
+if(step){                                       // STEP: read in the browser with OpenCascade (occt-import-js), mm Z-up → m Y-up
+  document.getElementById("msg").textContent="reading step file…";
+  const sc=document.createElement("script"); sc.src="https://cdn.jsdelivr.net/npm/occt-import-js@0.0.22/dist/occt-import-js.js";
+  sc.onerror=fail; sc.onload=async()=>{try{
+    const occt=await occtimportjs({locateFile:f=>"https://cdn.jsdelivr.net/npm/occt-import-js@0.0.22/dist/"+f});
+    const buf=new Uint8Array(await (await fetch(step)).arrayBuffer()), res=occt.ReadStepFile(buf,null); if(!res.success)return fail();
+    const g=new THREE.Group(); g.rotation.x=-Math.PI/2; g.scale.setScalar(0.001);
+    res.meshes.forEach((m,i)=>{const geo=new THREE.BufferGeometry();
+      geo.setAttribute("position",new THREE.Float32BufferAttribute(m.attributes.position.array,3));
+      if(m.attributes.normal)geo.setAttribute("normal",new THREE.Float32BufferAttribute(m.attributes.normal.array,3)); else geo.computeVertexNormals();
+      geo.setIndex(new THREE.Uint32BufferAttribute(Uint32Array.from(m.index.array),1));
+      const col=m.color?new THREE.Color(m.color[0],m.color[1],m.color[2]):new THREE.Color(0xd8bf94);
+      const node=new THREE.Group(); node.name=m.name||("part "+(i+1)); node.userData={cls:"STEP solid",tag:"",type:"",guid:""};
+      node.add(new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:col,roughness:.85,metalness:0}))); g.add(node)});
+    g.updateMatrixWorld(true); const wrap=new THREE.Group(); wrap.add(g); ready(wrap,{from:"step"})}catch(e){fail()}};
+  document.head.appendChild(sc);
+} else if(q.get("glb2")){            // overlay of two models (e.g. ours vs a supplier's): each becomes one "class" you can toggle; 2nd model tinted + see-through
+  const L=new GLTFLoader(), load=u=>new Promise((ok,no)=>L.load(u,ok,undefined,no));
+  Promise.all([load(src),load(q.get("glb2"))]).then(([a,b])=>{
+    const n1=q.get("n1")||"Model 1", n2=q.get("n2")||"Model 2", tint=new THREE.Color(q.get("c2")||"#3f6fb0"), wrap=new THREE.Group();
+    const tag=(sc,name,t)=>{sc.traverse(o=>{if(o.isMesh){const n=o.parent&&o.parent!==sc?o.parent:o; n.userData={...(n.userData||{}),cls:name};
+      if(t){o.material=o.material.clone();o.material.color.copy(t);o.material.transparent=true;o.material.opacity=.38;o.material.depthWrite=false}}})};
+    tag(a.scene,n1,null); tag(b.scene,n2,tint); wrap.add(a.scene); wrap.add(b.scene); ready(wrap,{from:"overlay"})}).catch(fail);
+} else new GLTFLoader().load(src,g=>ready(g.scene,g.scene.userData),undefined,fail);
+const ray=new THREE.Raycaster(),mp=new THREE.Vector2(); let down=null;
+function hit(e){const r=R.domElement.getBoundingClientRect();mp.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(mp,C);
+  return ray.intersectObjects(root?root.children:[],true).find(h=>h.object.visible&&clip.distanceToPoint(h.point)>=0)}
+function paint(n,on){n.traverse(o=>{if(o.isMesh){o.material.color.copy(on?new THREE.Color(0xc8693a):orig.get(o)); o.material.emissive?.setHex(on?0x3a1a08:0)}})}
+R.domElement.addEventListener("pointerdown",e=>down=[e.clientX,e.clientY]);
+function select(n){if(sel)paint(sel,false); sel=n||null; if(sel)paint(sel,true);
+  const u=sel?sel.userData:{}, ut=u.user&&Object.keys(u.user).length?`<div class="ut">${Object.entries(u.user).map(([k,v])=>`<div><span class="k">${esc(k)}</span>${esc(v)}</div>`).join("")}</div>`:"";
+  document.getElementById("pick").innerHTML=sel?`<b>${esc(sel.name||"—")}</b><br><span class="k">${u.layer?"layer":"class"}</span> ${esc(u.layer||u.cls||"")}<br>${u.tag&&!u.user?`<span class="k">tag</span> ${esc(u.tag)}<br>`:""}${u.type?`<span class="k">type</span> ${esc(u.type)}<br>`:""}${ut}<span class="k">id</span> <span style="font:11px var(--mono)">${esc(u.guid||"")}</span>`:'<span class="k">click an element</span>'}
+R.domElement.addEventListener("pointerup",e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>(e.pointerType==="touch"?10:4))return; const h=hit(e);
+  if(cmode){if(h)startComment(h,e);return}
+  select(h?h.object.userData.el:null);
+  if(sel&&e.pointerType==="touch"&&innerWidth<=600){document.body.classList.add("pan");document.getElementById("info").classList.add("on")}});
+let lastTap=0; R.domElement.addEventListener("pointerup",e=>{if(e.pointerType!=="touch"||!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>8)return;
+  const t=performance.now(); if(t-lastTap<320){lastTap=0;R.domElement.dispatchEvent(new MouseEvent("dblclick",{clientX:e.clientX,clientY:e.clientY}))} else lastTap=t});
+document.getElementById("info").onclick=e=>{document.body.classList.toggle("pan");e.target.classList.toggle("on",document.body.classList.contains("pan"))};
+R.domElement.addEventListener("dblclick",e=>{const h=hit(e);if(!h)return;const b=new THREE.Box3().setFromObject(h.object.userData.el),c=b.getCenter(new THREE.Vector3()),r=Math.max(b.getSize(new THREE.Vector3()).length(),0.5);
+  const d=C.position.clone().sub(O.target).normalize(); O.target.copy(c); C.position.copy(c).add(d.multiplyScalar(r*2.5))});
+document.getElementById("fit").onclick=()=>look("iso");
+document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>look(b.dataset.v));
+document.getElementById("xray").onclick=e=>{xray=!xray;e.target.classList.toggle("on",xray);
+  root&&root.traverse(o=>{if(o.isMesh){o.material.transparent=xray;o.material.opacity=xray?0.25:1;o.material.depthWrite=!xray}})};
+let edgeGroup=null;   // edge lines: on by default, children of each mesh so they hide with their class; not pickable
+function buildEdges(){if(edgeGroup||!root)return; edgeGroup=[]; const m=new THREE.LineBasicMaterial({color:0x1b1a18,transparent:true,opacity:.85,clippingPlanes:[clip]}), ms=[];
+  root.traverse(o=>{if(o.isMesh)ms.push(o)}); ms.forEach(o=>{const l=new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry,20),m); l.raycast=()=>{}; o.add(l); edgeGroup.push(l)})}
+document.getElementById("edges").onclick=e=>{edgesOn=!edgesOn;e.target.classList.toggle("on",edgesOn);if(!root)return; buildEdges(); edgeGroup.forEach(l=>l.visible=edgesOn)};
+document.getElementById("sec").oninput=e=>{const t=e.target.value/1000; clip.constant=t>=1?1e6:box.min.y+(box.max.y-box.min.y)*t};
+// ---- element comments: C = comment mode, click an element → box → ⌘↵ save → numbered pin; send to {{COORD}} = report + snapshots ----
+let cmode=false, CM={items:[]}, draft=null;
+const v3=v=>[+v.x.toFixed(4),+v.y.toFixed(4),+v.z.toFixed(4)];
+function modelPt(p){   // viewer (m, Y-up) → file coordinates
+  if(META.from==="3dm"){const s=META.unitScale||0.001,sh=META.shift||[0,0,0];return [p.x/s+sh[0],-p.z/s+sh[1],p.y/s+sh[2]].map(x=>+x.toFixed(2))}
+  if(META.from==="step")return [p.x*1000,-p.z*1000,p.y*1000].map(x=>+x.toFixed(2));
+  return null}
+function setCM(on){cmode=on;document.body.classList.toggle("cm",on);document.body.classList.toggle("mk",on);   /* mk: the parent app leaves Esc to us */
+  $("#cmb").classList.toggle("on",on);if(!on)closeBox();
+  if(on){toast("click an element to comment · Esc to stop");if(innerWidth<=600)document.body.classList.remove("pan")}}
+$("#cmb").onclick=()=>setCM(!cmode);
+function findEl(keys){if(!root||!keys)return [];const ks=(Array.isArray(keys)?keys:[keys]).map(k=>String(k).toLowerCase()),out=new Set();
+  Object.values(classes).forEach(c=>c.n.forEach(n=>{const u=n.userData,c2=[n.name,u.tag,u.guid,u.user&&u.user.part,u.user&&u.user.mark].filter(Boolean).map(x=>String(x).toLowerCase());if(c2.some(x=>ks.includes(x)))out.add(n)}));return [...out]}
+let hot=[];
+function hilite(ns){hot.forEach(n=>{if(n!==sel)paint(n,false)});hot=ns;hot.forEach(n=>paint(n,true))}
+function flyTo(cam,ns){if(cam&&cam.pos&&cam.target){C.position.set(...cam.pos);O.target.set(...cam.target);C.updateProjectionMatrix();return}
+  if(ns&&ns.length){const b=new THREE.Box3();ns.forEach(n=>b.expandByObject(n));const c=b.getCenter(new THREE.Vector3()),r=Math.max(b.getSize(new THREE.Vector3()).length(),0.3);
+    const d=C.position.clone().sub(O.target).normalize();O.target.copy(c);C.position.copy(c).add(d.multiplyScalar(r*1.8))}}
+function focusOn(keys,cam){const ns=findEl(keys);hilite(ns);if(ns.length===1)select(ns[0]);flyTo(cam,ns);
+  if(keys&&!ns.length)toast("not found in this model: "+[].concat(keys).join(", "))}
+function snap(maxW){R.render(S,C);const c=R.domElement,k=Math.min(1,maxW/c.width),o=document.createElement("canvas");o.width=Math.round(c.width*k);o.height=Math.round(c.height*k);
+  const g=o.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,o.width,o.height);g.drawImage(c,0,0,o.width,o.height);
+  pins();const ps=[...document.querySelectorAll(".pin")],cr=c.getBoundingClientRect(),sx=o.width/cr.width;   // burn the pins into the snapshot
+  g.font=`600 ${Math.round(12*sx)}px ui-monospace,monospace`;g.textAlign="center";g.textBaseline="middle";
+  ps.forEach(p=>{if(p.style.display==="none")return;const x=parseFloat(p.style.left)*sx,y=parseFloat(p.style.top)*sx,w=Math.max(20,p.offsetWidth)*sx,h=16*sx;
+    g.fillStyle=getComputedStyle(p).backgroundColor;g.fillRect(x-w/2,y-h-5*sx,w,h);g.beginPath();g.moveTo(x-4*sx,y-5*sx);g.lineTo(x+4*sx,y-5*sx);g.lineTo(x,y);g.fill();g.fillStyle="#fff";g.fillText(p.textContent,x,y-h/2-5*sx)});
+  return o.toDataURL("image/png")}
+function closeBox(){document.querySelectorAll(".cbox").forEach(x=>x.remove());if(draft){draft=null;pins()}}
+function startComment(h,e){const n=h.object.userData.el;select(n);closeBox();
+  draft={point:v3(h.point),name:n.name||"",cls:n.userData.cls||"",layer:n.userData.layer||"",type:n.userData.type||"",guid:n.userData.guid||"",tag:n.userData.tag||"",user:n.userData.user||null};
+  pins();editBox(draft,true,e.clientX,e.clientY)}
+function editBox(it,isNew,x,y){document.querySelectorAll(".cbox").forEach(b=>b.remove());const b=document.createElement("div");b.className="cbox";
+  const pl=innerWidth>600?$(".panel").getBoundingClientRect().left-8:innerWidth;b.style.left=(x+14+280<=pl?x+14:Math.max(8,x-14-280))+"px";b.style.top=Math.min(innerHeight-170,Math.max(8,y-20))+"px";
+  b.innerHTML=`<div class="el">${esc(it.name||"element")} <span>${esc(it.layer||it.cls||"")}</span></div><textarea placeholder="what is wrong here?">${esc(it.text||"")}</textarea><div class="r"><span class="h">#${it.n||"new"} · ⌘↵ save</span>${isNew?"":'<button data-a="del">delete</button>'}<button data-a="cancel">cancel</button><button class="go" data-a="save">save</button></div>`;
+  b.addEventListener("pointerdown",ev=>ev.stopPropagation());document.body.appendChild(b);const ta=b.querySelector("textarea");ta.focus();
+  const done=async a=>{b.remove();if(a==="save"){if(isNew){draft=null;const shot=snapWith(it);await capi("add",{...it,text:ta.value.trim(),camera:{pos:v3(C.position),target:v3(O.target)},mpoint:modelPt(new THREE.Vector3(...it.point)),shot})}
+      else await capi("update",{id:it.id,text:ta.value.trim()})}
+    else if(a==="del")await capi("delete",{id:it.id}); else {draft=null;pins()}};
+  b.querySelectorAll("button").forEach(x=>x.onclick=()=>done(x.dataset.a));
+  ta.addEventListener("keydown",ev=>{ev.stopPropagation();if(ev.key==="Enter"&&(ev.metaKey||ev.ctrlKey)){ev.preventDefault();done("save")}if(ev.key==="Escape"){ev.preventDefault();done("cancel")}})}
+function snapWith(it){const keep=draft;draft={...it,n:Math.max(0,...CM.items.map(i=>i.n))+1};const u=snap(1400);draft=keep;return u}
+async function cload(){if(!FILE){clist();return}try{CM=await (await fetch("/api/comments3d?p="+encodeURIComponent(FILE))).json()}catch(e){CM={items:[]}}clist()}
+async function capi(op,item){if(!FILE){toast("comments need the file path");return}
+  try{const r=await fetch("/api/comments3d",{method:"POST",body:JSON.stringify({path:FILE,op,item})});const d=await r.json();if(d&&d.items)CM=d;else if(op==="add")CM.items.push({...item,id:Date.now(),n:CM.items.length+1,state:"open"})}catch(e){toast("could not save")}
+  clist()}
+function clist(){const open=CM.items.filter(i=>i.state!=="sent").length;$("#ccn").textContent=CM.items.length?` (${open})`:"";
+  $("#csend").disabled=!open;$("#csend").textContent=open?`send ${open} to {{COORD}}`:"nothing new to send";$("#cfoot").style.display=CM.items.length?"flex":"none";
+  $("#clist").innerHTML=CM.items.length?CM.items.slice().sort((a,b)=>a.n-b.n).map(i=>`<div class="cc ${i.state==="sent"?"sent":""}" data-id="${i.id}"><div class="m"><b>#${i.n}</b><span class="en">${esc(i.name||"element")}${i.state==="sent"?" · sent":""}</span><span class="x" data-del="${i.id}" title="delete">✕</span></div>${esc(i.text)||'<i style="color:#aaa">no comment</i>'}</div>`).join("")
+    :`<div class="cempty">${FILE?"press ✎ comment (C), then click an element.":"open the model from Officina to comment."}</div>`;
+  document.querySelectorAll(".cc").forEach(c=>c.onclick=e=>{const id=+c.dataset.id;if(e.target.dataset.del){capi("delete",{id});return}const i=CM.items.find(x=>x.id===id);if(!i)return;
+    const ns=findEl([i.guid||i.name].filter(Boolean));hilite(ns);if(ns[0])select(ns[0]);flyTo(i.camera,ns);const p=document.querySelector(`.pin[data-id="${id}"]`);if(p){p.classList.add("hot");setTimeout(()=>p.classList.remove("hot"),1400)}});
+  pins()}
+const pv=new THREE.Vector3();
+function pins(){const box_=$("#pins"),list=CM.items.concat(draft?[{...draft,id:"d",n:draft.n||"·",state:"new"}]:[]),r=R.domElement.getBoundingClientRect();
+  if(box_.childElementCount!==list.length)box_.innerHTML=list.map(i=>`<div class="pin ${i.state==="sent"?"sent":i.state==="new"?"new":""}" data-id="${i.id}" title="${esc(i.text||"")}">${i.n}</div>`).join("");
+  [...box_.children].forEach((el,k)=>{const i=list[k];if(!i||!i.point){el.style.display="none";return}pv.set(...i.point).project(C);
+    if(pv.z>1||pv.x<-1.05||pv.x>1.05||pv.y<-1.05||pv.y>1.05){el.style.display="none";return}
+    el.style.display="";el.style.left=((pv.x+1)/2*r.width)+"px";el.style.top=((1-pv.y)/2*r.height)+"px";el.textContent=i.n;el.className="pin "+(i.state==="sent"?"sent":i.state==="new"?"new":"")})}
+$("#pins").addEventListener("click",e=>{const p=e.target.closest(".pin");if(!p||p.dataset.id==="d")return;const i=CM.items.find(x=>x.id===+p.dataset.id);if(i){const r=p.getBoundingClientRect();editBox(i,false,r.right,r.top)}});
+$("#csend").onclick=async()=>{const r=await fetch("/api/comments3d/send",{method:"POST",body:JSON.stringify({path:FILE,note:$("#cnote").value.trim(),snapshot:snap(1800)})});
+  if(r.ok){const d=await r.json();$("#cnote").value="";toast(`sent ${d.count||""} comment(s) to {{COORD}}`);await cload()}else toast("could not send")};
+addEventListener("keydown",e=>{if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName)||e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.key==="c"||e.key==="C"){setCM(!cmode)} else if(e.key==="Escape"&&cmode){setCM(false)} else if(e.key==="f"){look("iso")}});
+(function loop(){requestAnimationFrame(loop);O.update();R.render(S,C);if(CM.items.length||draft)pins()})();
+</script>
+</body>
+</html>

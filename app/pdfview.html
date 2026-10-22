@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Officina PDF</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--sans:'Geist',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace;--paper:#ffffff;--ink:#1d1d1b;--ink2:#3d3c38;--mute:#76746e;--faint:#a7a49d;--line:#e4e2dd;--copper:#c23b2e;--copper2:#a12e23;--copperbg:#f9ebe9;--rust:#c23b2e;--olive:#4b7f52}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#f6f6f5;color:var(--ink);font:12.5px var(--sans);overflow:hidden}
+.bar{position:absolute;left:0;right:0;top:0;height:40px;display:flex;align-items:center;gap:6px;padding:0 12px;overflow:hidden;background:var(--paper);border-bottom:1px solid var(--line);z-index:3}
+button{font:500 12px var(--sans);background:#fff;color:var(--ink);border:1px solid var(--line);padding:5px 10px;border-radius:0;cursor:pointer;min-width:30px;white-space:nowrap;flex:0 0 auto}
+button:hover{border-color:var(--copper);color:var(--copper2)} button.on{background:var(--rust);border-color:var(--rust);color:#fff}
+button.go{background:var(--copper);border-color:var(--copper);color:#fff} button.go:disabled{opacity:.45;cursor:default}
+.z{min-width:52px;text-align:center;color:var(--ink2);font:500 12px var(--mono)}.sp{flex:1}.pg{color:var(--mute)}
+#wrap{position:absolute;top:40px;left:0;right:0;bottom:0;overflow:auto;cursor:grab} #wrap.drag{cursor:grabbing} body.mk #wrap{cursor:crosshair}
+body.side #wrap{right:300px}
+#pages{padding:18px 20px 40px;display:flex;flex-direction:column;align-items:center;gap:14px;width:max-content;min-width:100%}
+.page{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08),0 8px 30px rgba(0,0,0,.10);position:relative}
+.page img:not([src]){visibility:hidden}.page img{width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
+.box{position:absolute;border:2px solid var(--rust);background:rgba(210,70,31,.06);border-radius:0}
+.box.sent{border-color:var(--olive);background:rgba(108,125,63,.06)} .box.hot{box-shadow:0 0 0 4px rgba(210,70,31,.3)}
+.box .n{position:absolute;left:-2px;top:-20px;background:var(--rust);color:#fff;font:600 11px var(--mono);padding:1px 6px;border-radius:0}
+.box.sent .n{background:var(--olive)}
+.edit{position:absolute;z-index:4;width:280px;background:#fff;border:1px solid var(--line);border-radius:0;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:8px}
+.edit textarea{width:100%;min-height:64px;resize:vertical;border:1px solid var(--line);border-radius:0;padding:7px 8px;font:13px/1.4 var(--sans);outline:none}
+.edit textarea:focus{border-color:var(--copper)} .edit .r{display:flex;gap:6px;justify-content:flex-end;margin-top:6px} .edit .h{font:11.5px var(--sans);color:var(--faint);margin-right:auto;align-self:center}
+#side{position:absolute;top:40px;right:0;bottom:0;width:300px;background:var(--paper);border-left:1px solid var(--line);display:none;flex-direction:column;z-index:2}
+body.side #side{display:flex}
+#side h3{margin:0;padding:12px 14px 8px;font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)} #side h3::before{content:none}
+#list{flex:1;overflow:auto;padding:0 10px}
+.c{border:1px solid var(--line);border-left:3px solid var(--rust);background:#fff;border-radius:0;padding:7px 9px;margin-bottom:7px;cursor:pointer;font:13px/1.4 var(--sans)}
+.c.sent{border-left-color:var(--olive);opacity:.75} .c .m{font:11.5px var(--sans);color:var(--faint);display:flex;gap:6px;margin-bottom:3px}
+.c .m b{color:var(--rust)} .c.sent .m b{color:var(--olive)} .c .m .x{margin-left:auto;cursor:pointer;padding:0 4px} .c .m .x:hover{color:var(--rust)}
+.foot{padding:10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.foot input{font:12px var(--sans);border:1px solid var(--line);border-radius:0;padding:6px 8px;outline:none}
+.empty{color:var(--faint);padding:6px 4px;font:12.5px var(--sans)}
+.msg{padding:40px;text-align:center;color:var(--mute)}
+.toast{position:fixed;right:16px;bottom:16px;background:var(--ink);color:var(--paper);padding:9px 13px;border-radius:0;font:12.5px var(--sans);opacity:0;transition:.25s;z-index:9}.toast.show{opacity:1}
+@media(max-width:560px){#fp{display:none}.pg{display:none}}
+/* touch: one finger scrolls (native), two fingers pinch-zoom + pan (JS); in markup mode one finger draws */
+#wrap{touch-action:pan-x pan-y} body.mk #wrap{touch-action:none}
+@media(max-width:600px){
+ .bar{height:46px;gap:5px;padding:0 8px} #wrap,#side{top:46px} .bar button{height:34px;padding:0 10px;font-size:13px} .z{min-width:44px}
+ .lg{display:none}
+ body.side #wrap{right:0;bottom:42%} #side{top:auto!important;left:0;width:auto;height:42%;border-left:0;border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(0,0,0,.08)}
+ .c{font-size:14.5px;padding:10px 12px} .c .m .x{padding:4px 10px;font-size:14px}
+ .foot{flex-direction:row} .foot input{flex:1;min-width:0;font-size:16px;padding:8px 10px} .foot button{height:40px}
+ .edit{position:fixed;left:8px!important;right:8px;top:auto!important;bottom:calc(8px + env(safe-area-inset-bottom));width:auto;padding:10px;z-index:9}
+ .edit textarea{font-size:16px;min-height:80px} .edit button{height:40px;padding:0 14px;font-size:14px}
+ .toast{left:12px;right:12px;text-align:center}
+}
+</style>
+</head>
+<body>
+<div class="bar"><button id="out" title="zoom out (⌘−)">−</button><span class="z" id="z">100%</span><button id="in" title="zoom in (⌘+)">+</button>
+<button id="fw" title="fit width (⌘0)">fit<span class="lg"> width</span></button><button id="fp" title="fit page">fit page</button>
+<button id="mk" title="draw boxes and write comments (M)">✎ markup</button><button id="sd" title="show comments">comments<span id="cn"></span></button>
+<span class="sp"></span><span class="pg" id="pg"></span></div>
+<div id="wrap"><div id="pages"><div class="msg">opening pdf…</div></div></div>
+<aside id="side"><h3>comments</h3><div id="list"></div>
+  <div class="foot"><input id="note" placeholder="note for {{COORD}} (optional)"><button class="go" id="send">send to {{COORD}} ↵</button></div></aside>
+<div class="toast" id="toast"></div>
+<script>
+// Pages are rendered by the Officina server (poppler) at the dpi the zoom needs. Markup boxes are stored as page fractions.
+const path=new URLSearchParams(location.search).get("p"), wrap=document.getElementById("wrap"), box=document.getElementById("pages"), $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2400)};
+let sizes=[],scale=1,mode="width",timer,M={items:[]},marking=false;
+const clamp=v=>Math.min(10,Math.max(0.1,v)), q=encodeURIComponent(path);
+function fit(){const w=Math.max(...sizes.map(s=>s.w)),h=Math.max(...sizes.map(s=>s.h));
+  return mode==="page"?Math.min((wrap.clientWidth-40)/w,(wrap.clientHeight-36)/h):(wrap.clientWidth-40)/w}
+function layout(keep){if(!sizes.length)return; const fx=keep?(wrap.scrollLeft+keep.x)/wrap.scrollWidth:0, fy=keep?(wrap.scrollTop+keep.y)/wrap.scrollHeight:0;
+  if(mode)scale=fit(); $("#z").textContent=Math.round(scale*100)+"%";
+  [...box.children].forEach((d,i)=>{d.style.width=sizes[i].w*scale+"px";d.style.height=sizes[i].h*scale+"px"});
+  if(keep){wrap.scrollLeft=fx*wrap.scrollWidth-keep.x;wrap.scrollTop=fy*wrap.scrollHeight-keep.y}
+  clearTimeout(timer); timer=setTimeout(sharpen,150)}
+const TOUCH=matchMedia("(pointer:coarse)").matches||"ontouchstart" in window;
+function sharpen(){const top=wrap.scrollTop,bot=top+wrap.clientHeight, dpi0=Math.min(600,Math.ceil(72*scale*(devicePixelRatio||1)/12)*12);
+  let n=1; const mid=top+wrap.clientHeight/2;
+  [...box.children].forEach((d,i)=>{if(d.offsetTop<=mid)n=i+1; if(d.offsetTop+d.offsetHeight<top-600||d.offsetTop>bot+600)return;
+    const img=d.querySelector("img"), dpi=TOUCH?Math.min(dpi0,Math.floor(72*Math.sqrt(16e6/(sizes[i].w*sizes[i].h))/12)*12):dpi0; if(+img.dataset.dpi>=dpi)return;
+    const nx=new Image(); nx.onload=()=>{if(+img.dataset.dpi<dpi){img.src=nx.src;img.dataset.dpi=dpi}}; nx.src=`/api/pdfpage?p=${q}&n=${i+1}&dpi=${dpi}`});
+  $("#pg").textContent=`page ${n} / ${sizes.length}`}
+function zoom(f,at){mode=null;scale=clamp(scale*f);layout(at||{x:wrap.clientWidth/2,y:wrap.clientHeight/2})}
+$("#in").onclick=()=>zoom(1.25); $("#out").onclick=()=>zoom(0.8);
+$("#fw").onclick=()=>{mode="width";layout()}; $("#fp").onclick=()=>{mode="page";layout()};
+wrap.addEventListener("wheel",e=>{if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();const r=wrap.getBoundingClientRect();
+  zoom(Math.exp(-e.deltaY*0.01),{x:e.clientX-r.left,y:e.clientY-r.top})},{passive:false});      // trackpad pinch arrives as ctrl+wheel
+let gs=1; addEventListener("gesturestart",e=>{e.preventDefault();gs=1}); addEventListener("gesturechange",e=>{e.preventDefault();if(TOUCH)return;zoom(e.scale/gs);gs=e.scale});
+// two-finger pinch zoom + pan (phone / iPad), zoom centred between the fingers
+let pz=null; const tdist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY), tmid=t=>({x:(t[0].clientX+t[1].clientX)/2,y:(t[0].clientY+t[1].clientY)/2});
+wrap.addEventListener("touchstart",e=>{if(e.touches.length!==2)return;e.preventDefault();if(rb){rb.el.remove();rb=null}pz={d:tdist(e.touches)||1,s:scale,m:tmid(e.touches)}},{passive:false});
+wrap.addEventListener("touchmove",e=>{if(!pz||e.touches.length!==2)return;e.preventDefault();const r=wrap.getBoundingClientRect(),m=tmid(e.touches),to=clamp(pz.s*tdist(e.touches)/pz.d);
+  zoom(to/scale,{x:m.x-r.left,y:m.y-r.top}); wrap.scrollLeft-=m.x-pz.m.x; wrap.scrollTop-=m.y-pz.m.y; pz.m=m},{passive:false});
+wrap.addEventListener("touchend",e=>{if(pz&&e.touches.length<2)pz=null}); wrap.addEventListener("touchcancel",()=>{pz=null});
+
+// ---- markup ----
+function setMark(on){marking=on;document.body.classList.toggle("mk",on);$("#mk").classList.toggle("on",on);if(on&&innerWidth>600)side(true)}  // phone: keep the drawing big
+function side(on){document.body.classList.toggle("side",on);if(mode)layout()}
+$("#mk").onclick=()=>setMark(!marking); $("#sd").onclick=()=>side(!document.body.classList.contains("side"));
+async function api(op,item){const r=await fetch("/api/markup",{method:"POST",body:JSON.stringify({path,op,item})});M=await r.json();paint()}
+function paint(){document.querySelectorAll(".box").forEach(b=>b.remove());
+  M.items.forEach(i=>{const pg=box.children[i.page-1];if(!pg)return;const b=document.createElement("div");b.className="box "+(i.state==="sent"?"sent":"");b.dataset.id=i.id;
+    Object.assign(b.style,{left:i.x*100+"%",top:i.y*100+"%",width:i.w*100+"%",height:i.h*100+"%"});b.innerHTML=`<span class="n">${i.n}</span>`;
+    b.addEventListener("pointerdown",e=>{if(!marking)e.stopPropagation()}); b.onclick=e=>{if(marking)return;e.stopPropagation();editor(i)}; pg.appendChild(b)});
+  const open=M.items.filter(i=>i.state!=="sent").length; $("#cn").textContent=M.items.length?` (${open})`:""; $("#send").disabled=!open;
+  $("#send").textContent=open?`send ${open} to {{COORD}} ↵`:"nothing new to send";
+  $("#list").innerHTML=M.items.length?M.items.slice().sort((a,b)=>a.n-b.n).map(i=>`<div class="c ${i.state==="sent"?"sent":""}" data-id="${i.id}"><div class="m"><b>#${i.n}</b>p${i.page} · ${esc(i.at)}${i.state==="sent"?" · sent":""}<span class="x" title="delete" data-del="${i.id}">✕</span></div>${esc(i.text)||'<i style="color:#aaa193">no comment</i>'}</div>`).join("")
+    :'<div class="empty">press ✎ markup (or M), then drag a box on the drawing.</div>';
+  document.querySelectorAll(".c").forEach(c=>c.onclick=e=>{const id=+c.dataset.id;if(e.target.dataset.del){api("delete",{id});return} focusItem(id)})}
+function focusItem(id){const b=document.querySelector(`.box[data-id="${id}"]`);if(!b)return;b.scrollIntoView({block:"center",inline:"center",behavior:"smooth"});
+  b.classList.add("hot");setTimeout(()=>b.classList.remove("hot"),1400)}
+function editor(i,isNew){document.querySelectorAll(".edit").forEach(x=>x.remove());const pg=box.children[i.page-1];
+  const e=document.createElement("div");e.className="edit";
+  if((i.x+i.w)>0.7){e.style.left=Math.max(0,i.x*100-25)+"%";e.style.top=(i.y+i.h)*100+"%"} else {e.style.left=(i.x+i.w)*100+"%";e.style.top=(i.y*100)+"%"}
+  e.innerHTML=`<textarea placeholder="what is wrong here?">${esc(i.text||"")}</textarea><div class="r"><span class="h">#${i.n||"new"} · ⌘↵ save</span>${isNew?"":'<button data-a="del">delete</button>'}<button data-a="cancel">cancel</button><button class="go" data-a="save">save</button></div>`;
+  e.addEventListener("pointerdown",ev=>ev.stopPropagation()); pg.appendChild(e); const ta=e.querySelector("textarea"); ta.focus();
+  const done=async a=>{e.remove(); if(a==="save"){if(isNew)await api("add",{...i,text:ta.value.trim()}); else await api("update",{id:i.id,text:ta.value.trim()})}
+    else if(a==="del")await api("delete",{id:i.id}); else paint()};
+  e.querySelectorAll("button").forEach(b=>b.onclick=()=>done(b.dataset.a));
+  ta.addEventListener("keydown",ev=>{if(ev.key==="Enter"&&(ev.metaKey||ev.ctrlKey)){ev.preventDefault();done("save")} if(ev.key==="Escape")done("cancel")})}
+let dr=null,rb=null;   // pointer events: mouse, pen and finger draw boxes the same way; finger panning is native scroll
+wrap.addEventListener("pointerdown",e=>{if(e.button!==0||pz||!e.isPrimary)return;
+  if(marking){const pg=e.target.closest(".page");if(!pg||e.target.closest(".edit"))return;e.preventDefault();const r=pg.getBoundingClientRect();
+    rb={pid:e.pointerId,pg,r,x0:(e.clientX-r.left)/r.width,y0:(e.clientY-r.top)/r.height,el:document.createElement("div")};rb.el.className="box";pg.appendChild(rb.el);return}
+  if(e.pointerType!=="mouse")return;
+  dr={x:e.clientX,y:e.clientY,l:wrap.scrollLeft,t:wrap.scrollTop};wrap.classList.add("drag")});
+addEventListener("pointermove",e=>{
+  if(rb&&e.pointerId===rb.pid){const x=Math.min(1,Math.max(0,(e.clientX-rb.r.left)/rb.r.width)),y=Math.min(1,Math.max(0,(e.clientY-rb.r.top)/rb.r.height));
+    Object.assign(rb.el.style,{left:Math.min(x,rb.x0)*100+"%",top:Math.min(y,rb.y0)*100+"%",width:Math.abs(x-rb.x0)*100+"%",height:Math.abs(y-rb.y0)*100+"%"});rb.x1=x;rb.y1=y;return}
+  if(dr){wrap.scrollLeft=dr.l-(e.clientX-dr.x);wrap.scrollTop=dr.t-(e.clientY-dr.y)}});
+addEventListener("pointercancel",()=>{if(rb){rb.el.remove();rb=null}dr=null;wrap.classList.remove("drag")});
+addEventListener("pointerup",e=>{if(rb&&e.pointerId===rb.pid){const b=rb;rb=null;b.el.remove();if(b.x1===undefined||Math.abs(b.x1-b.x0)<0.008||Math.abs(b.y1-b.y0)<0.008)return;
+    const page=[...box.children].indexOf(b.pg)+1; editor({page,x:Math.min(b.x0,b.x1),y:Math.min(b.y0,b.y1),w:Math.abs(b.x1-b.x0),h:Math.abs(b.y1-b.y0)},true);return}
+  dr=null;wrap.classList.remove("drag")});
+$("#send").onclick=async()=>{const r=await fetch("/api/markup/send",{method:"POST",body:JSON.stringify({path,note:$("#note").value.trim()})});
+  if(r.ok){const d=await r.json();$("#note").value="";toast(`sent ${d.count} comment(s) to {{COORD}}`);M=await (await fetch("/api/markup?p="+q)).json();paint()}else toast("could not send")};
+addEventListener("keydown",e=>{if(e.target.tagName==="TEXTAREA"||e.target.tagName==="INPUT")return;
+  if(e.key==="m"||e.key==="M"){setMark(!marking);return} if(e.key==="Escape"&&marking){setMark(false);return}
+  if(!(e.metaKey||e.ctrlKey))return; if(e.key==="="||e.key==="+"){e.preventDefault();zoom(1.25)} else if(e.key==="-"){e.preventDefault();zoom(0.8)} else if(e.key==="0"){e.preventDefault();mode="width";layout()}});
+wrap.addEventListener("scroll",()=>{clearTimeout(timer);timer=setTimeout(sharpen,100)}); addEventListener("resize",()=>mode&&layout());
+Promise.all([fetch("/api/pdfinfo?p="+q).then(r=>r.json()),fetch("/api/markup?p="+q).then(r=>r.json())]).then(([s,m])=>{sizes=s;M=m; if(!s.length)throw 0;
+  box.innerHTML=s.map((_,i)=>`<div class="page"><img data-dpi="0" alt="page ${i+1}"></div>`).join(""); if(M.items.length&&innerWidth>600)document.body.classList.add("side"); layout(); paint()})
+  .catch(()=>box.innerHTML='<div class="msg">could not open this pdf</div>');
+</script>
+</body>
+</html>

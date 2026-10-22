@@ -1,0 +1,8 @@
+# never commit runtime data or secrets
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+app-mac/Officina
+*.log
+config.json
